@@ -137,7 +137,7 @@ def explore():
     prev_url = url_for('explore', page=posts.prev_num) if posts.has_prev else None
     return render_template('index.html', title=title, posts=posts.items, next_url=next_url, prev_url=prev_url)
 
-@app.route('/reset-password_request/', methods=['GET', 'POST'])
+@app.route('/reset-password-request/', methods=['GET', 'POST'])
 def reset_password_request():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -149,7 +149,7 @@ def reset_password_request():
             send_reset_password_email(user)
         flash('Check your email for the instructions to reset your password')
         return redirect(url_for('login'))
-    return render_template('reset_passwordrequest.html', title=title, form=form)
+    return render_template('reset_password_request.html', title=title, form=form)
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):

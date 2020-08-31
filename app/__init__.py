@@ -1,14 +1,15 @@
 import os
 import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
-from flask import Flask
+from flask import Flask, request
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_bootstrap import Bootstrap
-from flask_babel import Babel
+from flask_babel import Babel, _
+from flask_babel import lazy_gettext as _l
 
 
 app = Flask(__name__)
@@ -20,6 +21,10 @@ login.login_view = 'login'
 mail = Mail(app)
 babel = Babel(app)
 bootstrap = Bootstrap(app)
+
+@babel.localeselector
+def get_locale():
+    return request.accept_languages.best_march(app.config['LANGUAGES'])
 
 if not app.debug:
     if app.config['MAIL_SERVER']:
@@ -33,7 +38,7 @@ if not app.debug:
             mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
             fromaddr=f'no-reply@{app.config["MAIL_SERVER"]}',
             toaddrs=app.config['ADMINS'],
-            subject='My Blog Failure',
+            subject=_('My Blog Failure'),
             credentials=auth, secure=secure)
         mail_handler.setLevel(logging.ERROR)
         app.logger.addHandler(mail_handler)
@@ -46,6 +51,6 @@ if not app.debug:
         app.logger.addHandler(file_handler)
         
         app.logger.setLevel(logging.INFO)
-        app.logger.info('My blog startup')
+        app.logger.info(_('My blog startup'))
 
 from . import views, models, errors

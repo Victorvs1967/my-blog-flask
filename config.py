@@ -20,5 +20,5 @@ class Config(object):
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD' or 'victorS77')
     MAIL_DEFAULT_SENDER = ADMINS[0]
 
-    POSTS_PER_PAGE = 25
+    POSTS_PER_PAGE = 7
     LANGUAGES = ['en', 'ru']

@@ -4,6 +4,15 @@
 {% if title %}My Blog - {{ title }}{% else %}My Blog - Welcome{% endif %}
 {% endblock %}
 
+{% block styles %}
+<link rel="stylesheet" href="../static/css/bootstrap.min.css">
+{% endblock %}
+
+{% block scripts %}
+    <script src="../static/js/jquery-3.5.1.js"></script>
+    <script src="../static/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
 {% block navbar %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <a class="navbar-brand" href="{{ url_for('index') }}">My Blog:</a>

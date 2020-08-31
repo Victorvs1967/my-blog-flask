@@ -48,6 +48,7 @@ class UserModelCase(unittest.TestCase):
         self.assertEqual(u1.followers.count(), 0)
 
     def test_follow(self):
+        # create tow users
         u1 = User(username='john', email='john@example.com')
         u2 = User(username='susan', email='susan@example.com')
         db.session.add(u1)
@@ -56,6 +57,7 @@ class UserModelCase(unittest.TestCase):
         self.assertEqual(u1.followed.all(), [])
         self.assertEqual(u1.followers.all(), [])
 
+        # add follow
         u1.follow(u2)
         db.session.commit()
         self.assertTrue(u1.is_following(u2))
@@ -64,6 +66,7 @@ class UserModelCase(unittest.TestCase):
         self.assertEqual(u2.followers.count(), 1)
         self.assertEqual(u2.followers.first().username, 'john')
 
+        # remove follow
         u1.unfollow(u2)
         db.session.commit()
         self.assertFalse(u1.is_following(u2))
@@ -87,6 +90,7 @@ class UserModelCase(unittest.TestCase):
         db.session.add_all([p1, p2, p3, p4])
         db.session.commit()
 
+        # add follow
         u1.follow(u2)
         u1.follow(u4)
         u2.follow(u3)

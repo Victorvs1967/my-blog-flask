@@ -28,7 +28,14 @@
                 <a class="nav-link text-light" href="{{ url_for('main.explore') }}">Explore</a>
                 </li>
             </ul>
-            <ul class="navbar-nav navbar-right">
+            {% if g.search_form %}
+            <form action="{{ url_for('main.search') }}" method="GET" class="navbar-form navbar-right">
+                <div class="form-group m-0">
+                    {{ g.search_form.q(size=20, class="form-control", placeholder=g.search_form.q.label.text) }}
+                </div>
+            </form>
+            {% endif %}
+            <ul class="navbar-nav navbar-right ml-4">
                 {% if current_user.is_anonymous %}
                 <li class="nav-item">
                     <a class="nav-link text-light" href="{{ url_for('auth.login') }}">Login</a>

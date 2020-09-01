@@ -9,6 +9,7 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_bootstrap import Bootstrap
 from flask_babel import Babel, _, lazy_gettext as _l
+from elasticsearch import Elasticsearch
 
 
 db = SQLAlchemy()
@@ -21,7 +22,7 @@ babel = Babel()
 
 def create_app(config=Config):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config)
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -37,6 +38,8 @@ def create_app(config=Config):
     app.register_blueprint(auth_bp, url_prefix='/auth')
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
+
+    app.elasticsearch = Elasticsearch([app.config['ELASTICSEARCH_URL']]) if app.config['ELASTICSEARCH_URL'] else None
 
     @babel.localeselector
     def get_locale():

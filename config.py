@@ -13,8 +13,7 @@ class Config(object):
 
     ADMINS = ['victorsmirnov67@gmail.com']
 
-    # MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'smtp.googlemail.com'
-    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'smtp.gmail.com'
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'smtp.googlemail.com'
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS' or True)
     MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL' or True)

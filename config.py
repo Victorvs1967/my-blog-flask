@@ -7,7 +7,7 @@ load_dotenv(os.path.join(base_dir, '.env'))
 
 class Config(object):
 
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'it is very secret key in my application'
+    SECRET_KEY = os.environ.get('SECRET_KEY')
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{os.path.join(base_dir, "app.db")}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -24,7 +24,7 @@ class Config(object):
     POSTS_PER_PAGE = 7
     LANGUAGES = ['en', 'ru']
 
-    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL') or 'http://localhost:9200'
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
 
 class TestConfig(Config):
     TESTING = True

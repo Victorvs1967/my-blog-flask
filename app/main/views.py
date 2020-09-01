@@ -93,7 +93,7 @@ def unfollow(username):
 @bp.route('/explore/')
 @login_required
 def explore():
-    title = 'main.explore'
+    title = 'Explore'
     page = request.args.get('page', 1, type=int)
     posts = Post.query.order_by(Post.timestamp.desc()).paginate(page, current_app.config['POSTS_PER_PAGE'], False)
     next_url = url_for('main.explore', page=posts.next_num) if posts.has_next else None

@@ -11,11 +11,86 @@
 {% block scripts %}
     <script src="{{ url_for('static', filename='js/jquery-3.5.1.js')}}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/moment-with-locales.min.js')}}"></script>
+
+    <!-- render moment -->
+    <script>
+        moment.locale("en");
+        function flask_moment_render(elem) {
+            timestamp = moment($(elem).data('timestamp'));
+            func = $(elem).data('function');
+            format = $(elem).data('format');
+            timestamp2 = $(elem).data('timestamp2');
+            no_suffix = $(elem).data('nosuffix');
+            args = [];
+            if (format)
+                args.push(format);
+            if (timestamp2)
+                args.push(moment(timestamp2));
+            if (no_suffix)
+                args.push(no_suffix);
+            $(elem).text(timestamp[func].apply(timestamp, args));
+            $(elem).removeClass('flask-moment').show();
+        }
+        function flask_moment_render_all() {
+            $('.flask-moment').each(function() {
+                flask_moment_render(this);
+                if ($(this).data('refresh')) {
+                    (function(elem, interval) { setInterval(function() { flask_moment_render(elem) }, interval); })(this, $(this).data('refresh'));
+                }
+            })
+        }
+        $(document).ready(function() {
+            flask_moment_render_all();
+        });
+    </script>        
+
+    <script>
+        $(function () {
+            var timer = null;
+            var xhr = null;
+            $('.user_popup').hover(
+                function (event) {
+                    var elem = $(event.currentTarget);
+                    timer = setTimeout(function () {
+                        xhr = $.ajax('/user/' + elem.first().text().trim() + '/popup/')
+                        .done(
+                            function (data) {
+                                xhr = null;
+                                elem.popover({
+                                    trigger: 'hover',
+                                    html: true,
+                                    animation: false,
+                                    container: elem,
+                                    content: data,
+                                }).popover('show');
+                                flask_moment_render_all();
+                           }
+                        );
+                    }, 1000);
+                },
+                function(event) {
+                    var elem = $(event.currentTarget);
+                    if (timer) {
+                        clearTimeout(timer);
+                        timer = null;
+                    }
+                    else if (xhr) {
+                        xhr.abort();
+                        xhr = null;
+                    }
+                    else {
+                        elem.popover('dispose');
+                    }
+                }
+            )
+        });
+    </script>
 {% endblock %}
 
 {% block navbar %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="{{ url_for('main.index') }}">My Blog:</a>
+        <a class="navbar-brand" href="{{ url_for('main.reindex') }}">My Blog:</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -35,14 +110,14 @@
                 </div>
             </form>
             {% endif %}
-            <ul class="navbar-nav navbar-right ml-4">
+            <ul class="navbar-nav navbar-right">
                 {% if current_user.is_anonymous %}
                 <li class="nav-item">
                     <a class="nav-link text-light" href="{{ url_for('auth.login') }}">Login</a>
                 </li>
                 {% else %}
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="{{ url_for('main.user', username=current_user.username) }}">Profile</a>
+                    <a class="nav-link text-light" href="{{ url_for('main.user', username=current_user.username) }}">{{ current_user.username }}</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-light" href="{{ url_for('auth.logout') }}">Logout</a>
@@ -54,7 +129,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container mt-5">
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for message in messages %}

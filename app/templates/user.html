@@ -7,7 +7,7 @@
         <td>
             <h1>User: {{ user.username }}</h1>
             {% if user.about_me %}<p>{{ user.about_me }}</p> {% endif %}
-            {% if user.last_seen %}<p>Last seen on: {{ user.last_seen.strftime("%a %d %B %Y, %H:%M:%S") }}</p>{% endif %}
+            {% if user.last_seen %}<p>Last seen on: {{ moment(user.last_seen).format('D MMM YYYY, HH:mm:ss') }}</p>{% endif %}
             <p>{{ user.followers.count() }} followers, {{ user.followed.count() }} following.</p>
             {% if user == current_user %}<p><a href="{{ url_for('main.edit_profile') }}">Edit your profile</a></p>
             {% elif not current_user.is_following(user) %}
@@ -22,10 +22,20 @@
 {% for post in posts %}
 {% include "_post.html" %}
 {% endfor %}
-{% if prev_url %}
-<a href="{{ prev_url }}">Newer posts</a>
-{% endif %}
-{% if next_url %}
-<a href="{{ next_url }}">Older posts</a>
-{% endif %}
+<nav class="nav" aria-label="...">
+    <ul class="pagination">
+        <li class="page-item previous {% if not prev_url %} disabled {% endif %}">
+            <a class="page-link" href="{{ prev_url or '#' }}">
+                <span aria-hidden="true">&larr;</span>
+                Newer posts
+            </a>
+        </li>
+        <li class="page-item next {% if not next_url %} disabled {% endif %}">
+            <a class="page-link" href="{{ next_url or '#' }}">
+                Older posts
+                <span aria-hidden="true">&rarr;</span>
+            </a>
+        </li>
+    </ul>
+</nav>
 {% endblock %}

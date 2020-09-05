@@ -56,6 +56,25 @@
                 }
             )
         });
+        function set_messages_count(n) {
+            $('#messages_count').text(n);
+            $('#messages_count').css('visibility', n ? 'visible' : 'hidden');
+        }
+        {% if current_user.is_authenticated %}
+        $(function() {
+            var since = 0;
+            setInterval(function() {
+                $.ajax('{{ url_for('main.notifications') }}?since=' + since).done(
+                    function(notifications) {
+                        for (var i = 0; i < notifications.lenght; i++) {
+                            if (notifications[i].name == 'unread_message_count') set_messages_count(notifications[i].data);
+                            since = notifications[i].timestamp;
+                        }
+                    }
+                );
+            }, 5000);
+        });
+        {% endif %}
     </script>
 {% endblock %}
 
@@ -75,7 +94,7 @@
                 </li>
             </ul>
             {% if g.search_form %}
-            <form action="{{ url_for('main.search') }}" method="GET" class="navbar-form navbar-right">
+            <form action="{{ url_for('main.search') }}" method="GET" class="navbar-form navbar-right mr-4">
                 <div class="form-group m-0">
                     {{ g.search_form.q(size=20, class="form-control", placeholder=g.search_form.q.label.text) }}
                 </div>
@@ -87,6 +106,13 @@
                     <a class="nav-link text-light" href="{{ url_for('auth.login') }}">Login</a>
                 </li>
                 {% else %}
+                <li class="nav-item">
+                    <a class="nav-link text-light" href="{{ url_for('main.messages') }}">
+                        Messages 
+                        {% set new_messages = current_user.new_messages() %}
+                        <span id="messages_count" class="badge badge-pill badge-warning" style="visibility: {% if new_message %}visible{% else %}hidden{% endif %};">{{ new_messages }}</span>
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link text-light" href="{{ url_for('main.user', username=current_user.username) }}">{{ current_user.username }}</a>
                 </li>

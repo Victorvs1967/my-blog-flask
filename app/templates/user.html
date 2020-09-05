@@ -11,9 +11,22 @@
             <p>{{ user.followers.count() }} followers, {{ user.followed.count() }} following.</p>
             {% if user == current_user %}<p><a href="{{ url_for('main.edit_profile') }}">Edit your profile</a></p>
             {% elif not current_user.is_following(user) %}
-            <p><a href="{{ url_for('main.follow', username=user.username) }}">Follow</a></p>
-            {% else %}
-            <p><a href="{{ url_for('main.unfollow', username=user.username) }}">Unfollow</a></p>
+            <p>
+                <form action="{{ url_for('main.follow', username=user.username) }}" method="post">
+                    {{ form.hidden_tag() }}
+                    {{ form.submit(value='Follow', class_='btn btn-success') }}
+                </form>
+            </p>
+        {% else %}
+        <p>
+            <form action="{{ url_for('main.unfollow', username=user.username) }}" method="post">
+                {{ form.hidden_tag() }}
+                {{ form.submit(value='Unfollow', class_='btn btn-warning') }}
+            </form>
+        </p>
+        {% endif %}
+            {% if user != current_user %}
+            <p><a href="{{ url_for('main.send_message', recipient=user.username) }}">Send private message</a></p>
             {% endif %}
         </td>
     </tr>

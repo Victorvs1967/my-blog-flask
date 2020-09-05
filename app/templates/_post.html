@@ -15,7 +15,7 @@
         </td>
         <td>
             {{ user_link }} said {{ moment(post.timestamp).fromNow() }}:<br>
-            {{ post.title }}<br>
+            {% if post.title %}{{ post.title }}<br>{% endif %}
             {{ post.body }}
         </td>
     </tr>

@@ -3,11 +3,19 @@ from flask_login import current_user, login_user, logout_user, login_required
 from flask_mail import Message
 from werkzeug.urls import url_parse
 from datetime import datetime
-from app import db
+from app import db, admin
 from app.main.forms import EditProfileForm, PostForm, SearchForm, MessageForm, EmptyForm
 from app.models import User, Post, Message, Notification
 from app.main import bp
+from flask_admin.contrib.sqla import ModelView
 
+
+class UserView(ModelView):
+    column_exclude_list = ['password_hash', ]
+
+admin.add_view(UserView(User, db.session))
+admin.add_view(ModelView(Post, db.session))
+admin.add_view(ModelView(Notification, db.session))
 
 @bp.before_app_request
 def before_request():
@@ -15,6 +23,7 @@ def before_request():
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
         g.search_form = SearchForm()
+        g.admin_role = True if current_user.username == 'admin' else False
 
 @bp.route('/', methods=['GET', 'POST'])
 @bp.route('/index/', methods=['GET', 'POST'])
@@ -163,3 +172,5 @@ def notifications():
         'data': n.get_data(),
         'timestamp': n.timestamp
     } for n in notifications])
+
+

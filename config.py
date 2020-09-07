@@ -22,9 +22,13 @@ class Config(object):
     MAIL_DEFAULT_SENDER = ADMINS[0]
 
     POSTS_PER_PAGE = 7
-    LANGUAGES = ['en', 'ru']
+    LANGUAGES = 'en'
 
     ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
+    REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
+
+
+    FLASK_ADMIN_SWATCH = 'cyborg'
 
 class TestConfig(Config):
     TESTING = True

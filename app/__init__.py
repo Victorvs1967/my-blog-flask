@@ -11,6 +11,9 @@ from flask_bootstrap import Bootstrap
 from flask_babel import Babel, _, lazy_gettext as _l
 from flask_moment import Moment
 from elasticsearch import Elasticsearch
+from redis import Redis
+import rq
+from flask_admin import Admin
 
 
 db = SQLAlchemy()
@@ -21,6 +24,9 @@ mail = Mail()
 bootstrap = Bootstrap()
 babel = Babel()
 moment = Moment()
+admin = Admin()
+admin.name = 'My Blog: Admin'
+
 
 def create_app(config=Config):
     app = Flask(__name__)
@@ -33,7 +39,10 @@ def create_app(config=Config):
     bootstrap.init_app(app)
     babel.init_app(app)
     moment.init_app(app)
+    admin.init_app(app)
 
+    app.redis = Redis.from_url(app.config['REDIS_URL'])
+    app.task_queue = rq.Queue('my_blog_tasks', connection=app.redis)
 
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)

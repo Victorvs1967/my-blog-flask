@@ -3,10 +3,12 @@ from time import time
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from flask import current_app
+from flask import current_app, flash
 from hashlib import md5
 import json
 import jwt
+import redis
+import rq
 from app.search import add_to_index, remove_from_index, query_index
 
 
@@ -22,7 +24,11 @@ followers = db.Table('follower',
 class SearchableMixin(object):
     @classmethod
     def search(cls, expression, page, per_page):
-        ids, total = query_index(cls.__tablename__, expression, page, per_page)
+        try:
+            ids, total = query_index(cls.__tablename__, expression, page, per_page)
+        except Exception as error:
+            flash('Search server not run')
+            total = 0
         if total == 0:
             return cls.query.filter_by(id=0), 0
         when = []
@@ -69,6 +75,7 @@ class User(db.Model, UserMixin):
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     about_me = db.Column(db.String(255))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    last_message_read_time = db.Column(db.DateTime)
     followed = db.relationship('User',
                 secondary=followers,
                 primaryjoin=(followers.c.follower_id == id),
@@ -81,9 +88,8 @@ class User(db.Model, UserMixin):
     messages_recieved = db.relationship('Message',
                                     foreign_keys='Message.recipient_id',
                                     backref='recipient', lazy='dynamic')
-    last_message_read_time = db.Column(db.DateTime)
-
     notifications = db.relationship('Notification', backref='user', lazy='dynamic')
+    tasks = db.relationship('Task', backref='user', lazy='dynamic')
     
     def __repr__(self):
         return f'User {self.username}'
@@ -135,6 +141,17 @@ class User(db.Model, UserMixin):
         db.session.add(n)
         return n
 
+    def launch_task(self, name, description, *args, **kwargs):
+        rq_job = current_app.task_queue.enqueue('app.task' + name, self.id, *args, **kwargs)
+        task = Task(id=rq_job.get_id(),  name=name, description=description, user=self)
+        db.session.add(task)
+        return task
+
+    def get_tasks_in_progress(self):
+        return Task.query.filter_by(user=self, complete=False).all()
+
+    def get_task_in_progress(self, name):
+        return Task.query.filter_by(name=name, user=self, complete=False).first()
 
 class Post(SearchableMixin, db.Model):
     __tablename__ = 'posts'
@@ -174,3 +191,24 @@ class Notification(db.Model):
 
     def get_data(self):
         return json.loads(str(self.payload_json))
+
+
+class Task(db.Model):
+    __tablename__ = 'tasks'
+
+    id = db.Column(db.String(36), primary_key=True)
+    name = db.Column(db.String(255), index=True)
+    description = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    complete = db.Column(db.Boolean, default=False)
+
+    def get_rq_job(self):
+        try:
+            rq_job = rq.job.Job.fetch(self.id, connection=current_app.redis)
+        except (redis.exeptions.RedisError, rq.exeptions.NoSuchJobError):
+            return None
+        return rq_job
+
+    def get_progress(self):
+        job = self.get_rq_job()
+        return job.meta.get('progress', 0) if job is not None else 100

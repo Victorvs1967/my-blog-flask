@@ -42,7 +42,7 @@ def create_app(config=Config):
     admin.init_app(app)
 
     app.redis = Redis.from_url(app.config['REDIS_URL'])
-    app.task_queue = rq.Queue('my_blog_tasks', connection=app.redis)
+    app.task_queue = rq.Queue('server-tasks', connection=app.redis)
 
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)

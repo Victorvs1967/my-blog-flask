@@ -85,3 +85,5 @@ def create_app(config=Config):
             app.logger.info(_('My blog startup'))
 
     return app
+
+from app import models

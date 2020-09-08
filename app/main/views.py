@@ -5,7 +5,7 @@ from werkzeug.urls import url_parse
 from datetime import datetime
 from app import db, admin
 from app.main.forms import EditProfileForm, PostForm, SearchForm, MessageForm, EmptyForm
-from app.models import User, Post, Message, Notification
+from app.models import User, Post, Message, Notification, Task
 from app.main import bp
 from flask_admin.contrib.sqla import ModelView
 
@@ -16,6 +16,7 @@ class UserView(ModelView):
 admin.add_view(UserView(User, db.session))
 admin.add_view(ModelView(Post, db.session))
 admin.add_view(ModelView(Notification, db.session))
+admin.add_view(ModelView(Task, db.session))
 
 @bp.before_app_request
 def before_request():

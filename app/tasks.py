@@ -14,7 +14,7 @@ app.app_context().push()
 def _set_task_progress(progress):
     job = get_current_job()
     if job:
-        jon.meta['progress'] = progress
+        job.meta['progress'] = progress
         job.save_meta()
         task = Task.query.get(job.get_id())
         task.user.add_notification('task_progress', {'task_id': job.get_id(), 'progress': progress})
@@ -23,7 +23,7 @@ def _set_task_progress(progress):
             task.complete = True
         db.session.commit()
         
-def export_post(user_id):
+def export_posts(user_id):
     try:
         user = User.query.get(user_id)
         _set_task_progress(0)
@@ -31,7 +31,7 @@ def export_post(user_id):
         i = 0
         total_post = user.posts.count()
         for post in user.posts.order_by(Post.timestamp.asc()):
-            data.append({'body': post.body, 'timestamp': post.timestamp.isoformat() + 'Z'})
+            data.append({'title': post.title, 'body': post.body, 'timestamp': post.timestamp.isoformat() + 'Z'})
             time.sleep(5)
             i += 1
             _set_task_progress(100 * i // total_post)

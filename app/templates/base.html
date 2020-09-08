@@ -60,6 +60,9 @@
             $('#messages_count').text(n);
             $('#messages_count').css('visibility', n ? 'visible' : 'hidden');
         }
+        function set_task_progress(task_id, progress) {
+            $('#' + task_id + '-progress').text(progress);
+        }
         {% if current_user.is_authenticated %}
         $(function() {
             var since = 0;
@@ -67,25 +70,22 @@
                 $.ajax('{{ url_for('main.notifications') }}?since=' + since).done(
                     function(notifications) {
                         for (var i = 0; i < notifications.length; i++) {
-                        switch (notifications[i].name) {
-                            case 'unread_message_count':
-                                set_message_count(notifications[i].data);
-                                break;
-                            case 'task_progress':
-                                set_task_progress(
-                                    notifications[i].data.task_id,
-                                    notifications[i].data.progress);
-                                break;
+                            switch (notifications[i].name) {
+                                case 'unread_message_count':
+                                    set_messages_count(notifications[i].data);
+                                    break;
+                                case 'task_progress':
+                                    set_task_progress(
+                                        notifications[i].data.task_id,
+                                        notifications[i].data.progress);
+                                    break;
                         }
                         since = notifications[i].timestamp;
                     }                    }
                 );
-            }, 5000);
+            }, 1000);
         });
         {% endif %}
-        function set_task_progress(task_id, progress) {
-            $('#' + task_id + '-progress').text(progress);
-        }
     </script>
 {% endblock %}
 

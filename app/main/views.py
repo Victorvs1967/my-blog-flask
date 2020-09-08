@@ -130,9 +130,8 @@ def search():
     return render_template('search.html', title=title, posts=posts, next_url=next_url, prev_url=prev_url)
 
 @bp.route('/reindex/', methods=['GET', 'POST'])
-# @login_required
+@login_required
 def reindex():
-    db.create_all()
     Post.reindex()
     flash('Searching index rebuild...')
     return redirect(url_for('main.index'))

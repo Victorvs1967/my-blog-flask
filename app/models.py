@@ -61,12 +61,15 @@ class SearchableMixin(object):
                     remove_from_index(obj.__tablename__, obj)
             session._changes = None
         except Exception as error:
-            flash(f'Search service not runing.')
+            flash(f'Search service not running.')
 
     @classmethod
     def reindex(cls):
-        for obj in cls.query:
-            add_to_index(cls.__tablename__, obj)
+        try:
+            for obj in cls.query:
+                add_to_index(cls.__tablename__, obj)
+        except Exception as error:
+            flash(f'Search service not running.')
 
 db.event.listen(db.session, 'before_commit', SearchableMixin.before_commit)
 db.event.listen(db.session, 'after_commit', SearchableMixin.after_commit)

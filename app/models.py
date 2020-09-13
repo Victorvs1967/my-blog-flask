@@ -26,26 +26,23 @@ class SearchableMixin(object):
     def search(cls, expression, page, per_page):
         try:
             ids, total = query_index(cls.__tablename__, expression, page, per_page)
+            if total == 0:
+                return cls.query.filter_by(id=0), 0
+            when = []
+            for i in range(len(ids)):
+                when.append((ids[i], i))
+            return cls.query.filter(cls.id.in_(ids)).order_by(db.case(when, value=cls.id)), total
         except Exception as error:
-            flash('Search server not run')
-            total = 0
-        if total == 0:
-            return cls.query.filter_by(id=0), 0
-        when = []
-        for i in range(len(ids)):
-            when.append((ids[i], i))
-        return cls.query.filter(cls.id.in_(ids)).order_by(db.case(when, value=cls.id)), total
+            flash(f'Search server not running.')
+            return [], 0
 
     @classmethod
     def before_commit(cls, session):
-        try:
-            session._changes = {
-                'add': list(session.new),
-                'update': list(session.dirty),
-                'delete': list(session.deleted)
-            }
-        except Exception as error:
-            flash(f'Elasticsearch error: {error}.')
+        session._changes = {
+            'add': list(session.new),
+            'update': list(session.dirty),
+            'delete': list(session.deleted)
+        }
 
     @classmethod
     def after_commit(cls, session):
@@ -61,7 +58,7 @@ class SearchableMixin(object):
                     remove_from_index(obj.__tablename__, obj)
             session._changes = None
         except Exception as error:
-            flash(f'Search service not running.')
+            flash(f'Search server not running.')
 
     @classmethod
     def reindex(cls):
@@ -69,7 +66,8 @@ class SearchableMixin(object):
             for obj in cls.query:
                 add_to_index(cls.__tablename__, obj)
         except Exception as error:
-            flash(f'Search service not running.')
+            flash('Search server not run')
+
 
 db.event.listen(db.session, 'before_commit', SearchableMixin.before_commit)
 db.event.listen(db.session, 'after_commit', SearchableMixin.after_commit)
@@ -161,6 +159,8 @@ class User(db.Model, UserMixin):
 
     def get_task_in_progress(self, name):
         return Task.query.filter_by(name=name, user=self, complete=False).first()
+
+
 
 class Post(SearchableMixin, db.Model):
     __tablename__ = 'posts'
